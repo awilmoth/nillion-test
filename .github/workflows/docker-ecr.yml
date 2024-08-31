@@ -15,44 +15,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Load account id
-        env:
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-        run: |
-          if [ -f .env ]; then
-            export $(cat .env | xargs)
-          else
-            echo "AWS account id not found!"
-            exit 1
-          fi
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-          aws-account-id:
 
       - name: Login to Amazon ECR
         id: ecr-login
         run: |
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
       - name: Build and tag server Docker image
         run: |
-          docker build -t $ECR_REPOSITORY_SERVER -f ./docker/Dockerfile.server .
-          docker tag $ECR_REPOSITORY_SERVER:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_SERVER:$IMAGE_TAG
+          docker build -t ${{ secrets.ECR_REPOSITORY_SERVER }} -f ./docker/Dockerfile.server .
+          docker tag ${{ secrets.ECR_REPOSITORY_SERVER }}:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_SERVER }}:${{ env.IMAGE_TAG }}
 
       - name: Build and tag client Docker image
         run: |
-          docker build -t $ECR_REPOSITORY_CLIENT -f ./docker/Dockerfile.client .
-          docker tag $ECR_REPOSITORY_CLIENT:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_CLIENT:$IMAGE_TAG
+          docker build -t ${{ secrets.ECR_REPOSITORY_CLIENT }} -f ./docker/Dockerfile.client .
+          docker tag ${{ secrets.ECR_REPOSITORY_CLIENT }}:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_CLIENT }}:${{ env.IMAGE_TAG }}
 
       - name: Push server image to ECR
         run: |
-          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_SERVER:$IMAGE_TAG
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_SERVER }}:${{ env.IMAGE_TAG }}
 
       - name: Push client image to ECR
         run: |
-          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_CLIENT:$IMAGE_TAG
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_CLIENT }}:${{ env.IMAGE_TAG }}
