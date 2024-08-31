@@ -118,4 +118,4 @@ fabric.properties
 
 .env
 __pycache__
-.idea
+.idea/*
