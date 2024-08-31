@@ -13,25 +13,32 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Parameters for the ZKP (these need to match the server's settings)
-try:
-    p = int(os.getenv('ZKP_PRIME'))
-    g = int(os.getenv('ZKP_GENERATOR'))
-    if not p or not g:
-        raise ValueError("ZKP_PRIME or ZKP_GENERATOR is not set properly.")
-except (TypeError, ValueError) as e:
-    logger.error(f"Environment variable error: {e}")
-    exit(1)
 
-q = (p - 1) // 2
-zkp = ZeroKnowledgeProof(p, q, g)
-
-
-def run():
+def get_env_variables():
     try:
-        grpc_server_url = os.getenv('GRPC_SERVER_URL')
-        if not grpc_server_url:
-            raise ValueError("GRPC_SERVER_URL is not set.")
+        p = int(os.getenv('ZKP_PRIME'))
+        g = int(os.getenv('ZKP_GENERATOR'))
+        if not p or not g:
+            logger.error("ZKP_PRIME or ZKP_GENERATOR is not set properly.")
+            raise SystemExit(1)
+    except (TypeError, ValueError) as e:
+        logger.error(f"Environment variable error: {e}")
+        raise SystemExit(1)
+
+    q = (p - 1) // 2
+
+    grpc_server_url = os.getenv('GRPC_SERVER_URL')
+    if not grpc_server_url:
+        logger.error("GRPC_SERVER_URL is not set.")
+        raise SystemExit(1)
+
+    return p, q, g, grpc_server_url
+
+
+def zkp_run():
+    try:
+        p, q, g, grpc_server_url = get_env_variables()
+        zkp = ZeroKnowledgeProof(p, q, g)
 
         with grpc.insecure_channel(grpc_server_url) as channel:
             stub = zkp_auth_pb2_grpc.AuthStub(channel)
@@ -79,11 +86,11 @@ def run():
                 logger.error("Authentication failed")
     except grpc.RpcError as e:
         logger.error(f"gRPC error: {e.code()} - {e.details()}")
-    except ValueError as e:
-        logger.error(f"Configuration error: {e}")
+    except SystemExit:
+        pass  # Let it raise
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
 
 
 if __name__ == '__main__':
-    run()
+    zkp_run()

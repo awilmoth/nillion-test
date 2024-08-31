@@ -22,15 +22,15 @@ g = int(os.getenv('ZKP_GENERATOR'))  # Generator with 5 as default value
 
 zkp = ZeroKnowledgeProof(p, q, g)
 
-# In-memory storage for demonstration purposes
-user_store = {}
-challenge_store = {}
-
 
 class AuthServicer(zkp_auth_pb2_grpc.AuthServicer):
+    def __init__(self):
+        self.user_store = {}
+        self.challenge_store = {}
+
     def Register(self, request, context):
         logger.info(f"Registering user {request.user} with y1={request.y1} and y2={request.y2}")
-        user_store[request.user] = {
+        self.user_store[request.user] = {
             'y1': request.y1,
             'y2': request.y2
         }
@@ -38,12 +38,12 @@ class AuthServicer(zkp_auth_pb2_grpc.AuthServicer):
 
     def CreateAuthenticationChallenge(self, request, context):
         logger.info(f"Creating challenge for user {request.user}")
-        if request.user not in user_store:
+        if request.user not in self.user_store:
             context.abort(grpc.StatusCode.NOT_FOUND, "User not found")
 
         auth_id = "auth_" + str(time.time())
         c = zkp.generate_challenge()  # Generate a challenge using the ZKP instance
-        challenge_store[auth_id] = {
+        self.challenge_store[auth_id] = {
             'user': request.user,
             'challenge': c
         }
@@ -52,11 +52,11 @@ class AuthServicer(zkp_auth_pb2_grpc.AuthServicer):
     def VerifyAuthentication(self, request, context):
         logger.info(f"Verifying authentication with auth_id={request.auth_id} and s={request.s}")
         # Validate auth_id
-        if request.auth_id not in challenge_store:
+        if request.auth_id not in self.challenge_store:
             context.abort(grpc.StatusCode.NOT_FOUND, "Authentication ID not found")
 
-        challenge_data = challenge_store.pop(request.auth_id)  # Retrieve and remove the challenge data
-        user_data = user_store.get(challenge_data['user'])
+        challenge_data = self.challenge_store.pop(request.auth_id)  # Retrieve and remove the challenge data
+        user_data = self.user_store.get(challenge_data['user'])
 
         if not user_data:
             context.abort(grpc.StatusCode.NOT_FOUND, "User data not found")

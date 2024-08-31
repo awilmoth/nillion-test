@@ -1,0 +1,4 @@
+pycryptodome~=3.20.0
+protobuf~=5.27.3
+grpcio~=1.66.1
+python-dotenv~=1.0.1
