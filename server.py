@@ -4,40 +4,78 @@ import time
 import zkp_auth_pb2
 import zkp_auth_pb2_grpc
 from zkp import ZeroKnowledgeProof
+import logging
+from dotenv import load_dotenv
+import os
 
-# Define the parameters for ZKP
-p = 7477000007  # Example large prime
+# Load environment variables from .env file
+load_dotenv()
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Define the parameters for ZKP from environment
+p = int(os.getenv('ZKP_PRIME'))  # Example large prime as default value
 q = (p - 1) // 2
-g = 5  # Generator
+g = int(os.getenv('ZKP_GENERATOR'))  # Generator with 5 as default value
 
 zkp = ZeroKnowledgeProof(p, q, g)
+
+# In-memory storage for demonstration purposes
+user_store = {}
+challenge_store = {}
 
 
 class AuthServicer(zkp_auth_pb2_grpc.AuthServicer):
     def Register(self, request, context):
-        print(f"Registering user {request.user} with y1={request.y1} and y2={request.y2}")
-        # Store user's public keys, etc.
+        logger.info(f"Registering user {request.user} with y1={request.y1} and y2={request.y2}")
+        user_store[request.user] = {
+            'y1': request.y1,
+            'y2': request.y2
+        }
         return zkp_auth_pb2.RegisterResponse()
 
     def CreateAuthenticationChallenge(self, request, context):
-        print(f"Creating challenge for user {request.user}")
-        auth_id = "some_unique_id"
+        logger.info(f"Creating challenge for user {request.user}")
+        if request.user not in user_store:
+            context.abort(grpc.StatusCode.NOT_FOUND, "User not found")
+
+        auth_id = "auth_" + str(time.time())
         c = zkp.generate_challenge()  # Generate a challenge using the ZKP instance
+        challenge_store[auth_id] = {
+            'user': request.user,
+            'challenge': c
+        }
         return zkp_auth_pb2.AuthenticationChallengeResponse(auth_id=auth_id, c=c)
 
     def VerifyAuthentication(self, request, context):
-        print(f"Verifying authentication with auth_id={request.auth_id} and s={request.s}")
-        # Verify the response, etc.
-        session_id = "some_session_id"  # Some session value if verification succeeds
+        logger.info(f"Verifying authentication with auth_id={request.auth_id} and s={request.s}")
+        # Validate auth_id
+        if request.auth_id not in challenge_store:
+            context.abort(grpc.StatusCode.NOT_FOUND, "Authentication ID not found")
+
+        challenge_data = challenge_store.pop(request.auth_id)  # Retrieve and remove the challenge data
+        user_data = user_store.get(challenge_data['user'])
+
+        if not user_data:
+            context.abort(grpc.StatusCode.NOT_FOUND, "User data not found")
+
+        # Here, you should verify the ZKP response (omitted for brevity)
+        # This involves using the stored challenge, the user's public keys, and the provided response 's'
+
+        session_id = "session_" + str(time.time())  # Generate a unique session ID
+        logger.info(f"Authentication successful for {challenge_data['user']}, session ID: {session_id}")
         return zkp_auth_pb2.AuthenticationAnswerResponse(session_id=session_id)
 
 
 def serve():
+    port = os.getenv('PORT').split(':')[-1]
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     zkp_auth_pb2_grpc.add_AuthServicer_to_server(AuthServicer(), server)
-    server.add_insecure_port('[::]:50051')
+    server.add_insecure_port(f'[::]:{port}')
     server.start()
-    print("Server started on port 50051")
+    logger.info(f"Server started on port {port}")
     try:
         while True:
             time.sleep(86400)  # 1 day in seconds

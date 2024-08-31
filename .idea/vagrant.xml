@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="VagrantProjectSettings">
-    <option name="instanceFolder" value="/Volumes/Vagrant/dev-machine_default_1724725458376_92960" />
-    <option name="provider" value="virtualbox" />
-  </component>
-</project>
