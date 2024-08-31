@@ -1,0 +1,323 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: A CloudFormation template to set up a CD pipeline for blue/green deployment to ECS.
+
+Resources:
+
+  # ECS Service for Server
+  ServerService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !ImportValue ClusterName
+      TaskDefinition: !ImportValue ServerTaskDefinitionArn
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !ImportValue SubnetId
+          AssignPublicIp: ENABLED
+
+  # ECS Service for Client
+  ClientService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !ImportValue ClusterName
+      TaskDefinition: !ImportValue ClientTaskDefinitionArn
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !ImportValue SubnetId
+          AssignPublicIp: ENABLED
+
+  # Pipeline artifact S3 bucket
+  PipelineBucket:
+    Type: AWS::S3::Bucket
+
+  # CodeBuild project for Server
+  ServerBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: ServerBuild
+      Source:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        Type: LINUX_CONTAINER
+        PrivilegedMode: true
+      ServiceRole: !Ref CodeBuildServiceRole
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: NO_CACHE
+      TimeoutInMinutes: 60
+
+  # CodeBuild project for Client
+  ClientBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: ClientBuild
+      Source:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:5.0
+        Type: LINUX_CONTAINER
+        PrivilegedMode: true
+      ServiceRole: !Ref CodeBuildServiceRole
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: NO_CACHE
+      TimeoutInMinutes: 60
+
+  # CodePipeline for blue/green deployment
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: BlueGreenDeploymentPipeline
+      ArtifactStore:
+        Type: S3
+        Location: !Ref PipelineBucket
+      RoleArn: !GetAtt CodePipelineServiceRole.Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: ECRSourceServer
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: ECR
+                Version: 1
+              OutputArtifacts:
+                - Name: SourceServerArtifact
+              Configuration:
+                RepositoryName: zkp_auth_server
+                ImageTag: latest
+              RunOrder: 1
+            - Name: ECRSourceClient
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: ECR
+                Version: 1
+              OutputArtifacts:
+                - Name: SourceClientArtifact
+              Configuration:
+                RepositoryName: zkp_auth_client
+                ImageTag: latest
+              RunOrder: 2
+        - Name: Build
+          Actions:
+            - Name: ServerBuild
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              InputArtifacts:
+                - Name: SourceServerArtifact
+              OutputArtifacts:
+                - Name: ServerBuildArtifact
+              Configuration:
+                ProjectName: !Ref ServerBuildProject
+              RunOrder: 1
+            - Name: ClientBuild
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              InputArtifacts:
+                - Name: SourceClientArtifact
+              OutputArtifacts:
+                - Name: ClientBuildArtifact
+              Configuration:
+                ProjectName: !Ref ClientBuildProject
+              RunOrder: 2
+        - Name: Deploy
+          Actions:
+            - Name: ECSDeployServer
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CodeDeployToECS
+                Version: 1
+              InputArtifacts:
+                - Name: ServerBuildArtifact
+              Configuration:
+                ApplicationName: !Ref ZkpServerCodeDeployApplication
+                DeploymentGroupName: !Ref ZkpServerCodeDeployDeploymentGroup
+              RunOrder: 1
+            - Name: ECSDeployClient
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CodeDeployToECS
+                Version: 1
+              InputArtifacts:
+                - Name: ClientBuildArtifact
+              Configuration:
+                ApplicationName: !Ref ZkpClientCodeDeployApplication
+                DeploymentGroupName: !Ref ZkpClientCodeDeployDeploymentGroup
+              RunOrder: 2
+
+  # CodeDeploy ECS Applications
+  ZkpServerCodeDeployApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ComputePlatform: ECS
+
+  ZkpClientCodeDeployApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ComputePlatform: ECS
+
+  # CodeDeploy ECS Deployment Groups
+  ZkpServerCodeDeployDeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref ZkpServerCodeDeployApplication
+      ServiceRoleArn: !Ref CodeDeployServiceRole
+      DeploymentConfigName: CodeDeployDefault.ECSAllAtOnce
+      DeploymentStyle:
+        DeploymentType: BLUE_GREEN
+      BlueGreenDeploymentConfiguration:
+        TerminateBlueInstancesOnDeploymentSuccess:
+          Action: TERMINATE
+          TerminationWaitTimeInMinutes: 5
+        DeploymentReadyOption:
+          ActionOnTimeout: CONTINUE_DEPLOYMENT
+          WaitTimeInMinutes: 0
+      ECSService:
+        ClusterName: !ImportValue ClusterName
+        ServiceName: !Ref ServerService
+      AutoRollbackConfiguration:
+        Enabled: true
+        Events:
+          - DEPLOYMENT_FAILURE
+
+  ZkpClientCodeDeployDeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref ZkpClientCodeDeployApplication
+      ServiceRoleArn: !Ref CodeDeployServiceRole
+      DeploymentConfigName: CodeDeployDefault.ECSAllAtOnce
+      DeploymentStyle:
+        DeploymentType: BLUE_GREEN
+      BlueGreenDeploymentConfiguration:
+        TerminateBlueInstancesOnDeploymentSuccess:
+          Action: TERMINATE
+          TerminationWaitTimeInMinutes: 5
+        DeploymentReadyOption:
+          ActionOnTimeout: CONTINUE_DEPLOYMENT
+          WaitTimeInMinutes: 0
+      ECSService:
+        ClusterName: !ImportValue ClusterName
+        ServiceName: !Ref ClientService
+      AutoRollbackConfiguration:
+        Enabled: true
+        Events:
+          - DEPLOYMENT_FAILURE
+
+  # IAM Role for CodeBuild
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodeBuildServicePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetAuthorizationToken
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: "*"
+
+  # IAM Role for CodePipeline
+  CodePipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodePipelineServicePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                  - codedeploy:CreateDeployment
+                  - codedeploy:GetApplication
+                  - codepipeline:PutActionExecutionResult
+                  - codepipeline:PollForJobs
+                  - codepipeline:AcknowledgeJob
+                  - codepipeline:GetJobDetails
+                  - codepipeline:ListPipelines
+                  - codepipeline:GetPipelineState
+                  - ecs:DescribeServices
+                  - ecs:UpdateService
+                  - iam:PassRole
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: "*"
+
+  # IAM Role for CodeDeploy
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codedeploy.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodeDeployServicePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecs:CreateService
+                  - ecs:DeleteService
+                  - ecs:DescribeServices
+                  - ecs:DescribeTaskDefinition
+                  - ecs:DescribeTasks
+                  - ecs:ListTasks
+                  - ecs:RegisterTaskDefinition
+                  - ecs:UpdateService
+                  - iam:PassRole
+                  - codedeploy:CreateDeployment
+                  - codedeploy:GetApplication
+                Resource: "*"
+
+Outputs:
+  PipelineName:
+    Description: "The name of the created CodePipeline"
+    Value: !Ref CodePipeline

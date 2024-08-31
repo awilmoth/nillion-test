@@ -1,13 +1,15 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Description: Infrastructure setup for ZKP Authorization with ECS, VPC, Subnet, Internet Gateway, Route Table, and ECR repositories.
+
 Resources:
   # Create ECS Cluster
-  MyCluster:
+  ZkpCluster:
     Type: AWS::ECS::Cluster
     Properties:
       ClusterName: zkpCluster
 
   # Create VPC
-  MyVPC:
+  ZkpVPC:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.0.0.0/16
@@ -18,48 +20,48 @@ Resources:
           Value: zkpVpc
 
   # Create Subnet
-  MySubnet:
+  ZkpSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       CidrBlock: 10.0.1.0/24
-      VpcId: !Ref MyVPC
+      VpcId: !Ref ZkpVPC
       MapPublicIpOnLaunch: true
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
 
   # Create Internet Gateway
-  MyInternetGateway:
+  ZkpInternetGateway:
     Type: AWS::EC2::InternetGateway
 
   # Attach Gateway to VPC
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId: !Ref MyVPC
-      InternetGatewayId: !Ref MyInternetGateway
+      VpcId: !Ref ZkpVPC
+      InternetGatewayId: !Ref ZkpInternetGateway
 
   # Create Route Table
-  MyRouteTable:
+  ZkpRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref MyVPC
+      VpcId: !Ref ZkpVPC
 
   # Create Route
-  MyRoute:
+  ZkpRoute:
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref MyRouteTable
+      RouteTableId: !Ref ZkpRouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref MyInternetGateway
+      GatewayId: !Ref ZkpInternetGateway
 
   # Associate Route Table with Subnet
   SubnetRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref MySubnet
-      RouteTableId: !Ref MyRouteTable
+      SubnetId: !Ref ZkpSubnet
+      RouteTableId: !Ref ZkpRouteTable
 
   # Create ECS Task Role
-  MyTaskExecutionRole:
+  ZkpTaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -79,6 +81,7 @@ Resources:
                   - ecr:GetDownloadUrlForLayer
                   - ecr:BatchGetImage
                   - ecr:BatchCheckLayerAvailability
+                  - ecr:GetAuthorizationToken
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                   - logs:CreateLogGroup
@@ -89,7 +92,7 @@ Resources:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: zkp_auth_server
-  
+
   ZkpClientRepository:
     Type: AWS::ECR::Repository
     Properties:
@@ -104,7 +107,7 @@ Resources:
       Cpu: 256
       Memory: 512
       NetworkMode: awsvpc
-      ExecutionRoleArn: !GetAtt MyTaskExecutionRole.Arn
+      ExecutionRoleArn: !GetAtt ZkpTaskExecutionRole.Arn
       ContainerDefinitions:
         - Name: zkp_auth_server
           Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/zkp_auth_server:latest"
@@ -121,42 +124,68 @@ Resources:
       Cpu: 256
       Memory: 512
       NetworkMode: awsvpc
-      ExecutionRoleArn: !GetAtt MyTaskExecutionRole.Arn
+      ExecutionRoleArn: !GetAtt ZkpTaskExecutionRole.Arn
       ContainerDefinitions:
         - Name: zkp_auth_client
           Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/zkp_auth_client:latest"
 
-  # ECS Service for Server
-  ServerService:
-    Type: AWS::ECS::Service
-    Properties:
-      Cluster: !Ref MyCluster
-      TaskDefinition: !Ref ServerTaskDefinition
-      DesiredCount: 1
-      LaunchType: FARGATE
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          Subnets:
-            - !Ref MySubnet
-          AssignPublicIp: ENABLED
-
-  # ECS Service for Client
-  ClientService:
-    Type: AWS::ECS::Service
-    Properties:
-      Cluster: !Ref MyCluster
-      TaskDefinition: !Ref ClientTaskDefinition
-      DesiredCount: 1
-      LaunchType: FARGATE
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          Subnets:
-            - !Ref MySubnet
-          AssignPublicIp: ENABLED
 Outputs:
   ZkpServerRepositoryUri:
-    Description: ZKP Auth Server Repository URI
+    Description: "ZKP Auth Server Repository URI"
     Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/zkp_auth_server"
+    Export:
+      Name: ZkpServerRepositoryUri
+
   ZkpClientRepositoryUri:
-    Description: ZKP Auth Client Repository URI
+    Description: "ZKP Auth Client Repository URI"
     Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/zkp_auth_client"
+    Export:
+      Name: ZkpClientRepositoryUri
+
+  ClusterName:
+    Description: "ECS Cluster Name"
+    Value: !Ref ZkpCluster
+    Export:
+      Name: ClusterName
+
+  VpcId:
+    Description: "VPC ID"
+    Value: !Ref ZkpVPC
+    Export:
+      Name: VpcId
+
+  SubnetId:
+    Description: "Subnet ID"
+    Value: !Ref ZkpSubnet
+    Export:
+      Name: SubnetId
+
+  InternetGatewayId:
+    Description: "Internet Gateway ID"
+    Value: !Ref ZkpInternetGateway
+    Export:
+      Name: InternetGatewayId
+
+  RouteTableId:
+    Description: "Route Table ID"
+    Value: !Ref ZkpRouteTable
+    Export:
+      Name: RouteTableId
+
+  TaskExecutionRoleArn:
+    Description: "Task Execution Role ARN"
+    Value: !GetAtt ZkpTaskExecutionRole.Arn
+    Export:
+      Name: TaskExecutionRoleArn
+
+  ServerTaskDefinitionArn:
+    Description: "Server Task Definition ARN"
+    Value: !Ref ServerTaskDefinition
+    Export:
+      Name: ServerTaskDefinitionArn
+
+  ClientTaskDefinitionArn:
+    Description: "Client Task Definition ARN"
+    Value: !Ref ClientTaskDefinition
+    Export:
+      Name: ClientTaskDefinitionArn

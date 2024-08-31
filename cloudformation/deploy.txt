@@ -1,3 +1,13 @@
+   1. Add secrets to github secrets
+
+   2. Deploy ecs cloudformation template in appropriate region
+
+   3. Run github actions to deploy application to ECR
+
+   4. Run cd cloudformation template in appropriate region
+
+
+
    # Authenticate Docker to ECR
    aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <your-account-id>.dkr.ecr.<your-region>.amazonaws.com
 
