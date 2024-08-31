@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pip and virtualenv
+# Install pip
 RUN pip install --no-cache-dir pip
 
 # Copy the requirements file into the container
@@ -27,4 +27,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app
 
 # Define the command to run the script
-CMD ["python3", "zkp_auth_client.py"]
+CMD ["python3", "src/zkp_auth_client.py"]

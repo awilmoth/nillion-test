@@ -70,7 +70,7 @@ class AuthServicer(zkp_auth_pb2_grpc.AuthServicer):
 
 
 def serve():
-    port = os.getenv('PORT').split(':')[-1]
+    port = os.getenv('GRPC_SERVER_PORT').split(':')[-1]
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     zkp_auth_pb2_grpc.add_AuthServicer_to_server(AuthServicer(), server)
     server.add_insecure_port(f'[::]:{port}')

@@ -6,16 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="c68dc12b-fc2d-4d56-87f4-8374dc26803f" name="Changes" comment="a">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile.client" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile.client" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile.server" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile.server" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_zkp.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/test_zkp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_zkp_auth_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/test_zkp_auth_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zkp.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zkp_auth.proto" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp_auth.proto" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zkp_auth_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp_auth_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zkp_auth_pb2.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp_auth_pb2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zkp_auth_pb2_grpc.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp_auth_pb2_grpc.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zkp_auth_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp_auth_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker/Dockerfile.client" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile.client" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker/Dockerfile.server" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile.server" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/zkp_auth_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp_auth_server.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,12 +24,12 @@
     &quot;assignee&quot;: &quot;awilmoth&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;git@github.com:awilmoth/nillion-test.git&quot;,
-    &quot;accountId&quot;: &quot;44ade942-cedc-4ce6-bd3b-69afb40b2e06&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "git@github.com:awilmoth/zero-knowledge-auth.git",
+    "accountId": "44ade942-cedc-4ce6-bd3b-69afb40b2e06"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8
 }</component>
@@ -113,6 +106,7 @@
       <workItem from="1725055812509" duration="6979000" />
       <workItem from="1725073615796" duration="3276000" />
       <workItem from="1725079385540" duration="357000" />
+      <workItem from="1725122014679" duration="1244000" />
     </task>
     <servers />
   </component>

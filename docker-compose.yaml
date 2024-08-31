@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  zkp_auth_server:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.server
+    ports:
+      - "50051:50051"
+    env_file:
+      - .env
+    networks:
+      - zkp_auth_network
+
+  zkp_auth_client:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.client
+    env_file:
+      - .env
+    networks:
+      - zkp_auth_network
+    depends_on:
+      - zkp_auth_server
+
+networks:
+  zkp_auth_network:
+    driver: bridge

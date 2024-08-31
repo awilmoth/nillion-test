@@ -1,9 +1,9 @@
 # Use an official Python runtime as a parent image
-FROM python:3.12-slim
+FROM python:3.12-slim AS base
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
+# Set environment variables from Docker Compose .env file
+ENV PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+ENV PYTHONPATH=${PYTHONPATH}
 
 # Create a working directory
 WORKDIR /app
@@ -23,8 +23,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Expose port (for example 50051 as used in your server.py)
+# Add a non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Change ownership to the non-root user
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
 EXPOSE 50051
 
 # Define the command to run the server
-CMD ["python3", "../src/zkp_auth_server.py"]
+CMD ["python3", "src/zkp_auth_server.py"]
