@@ -10,3 +10,22 @@
    docker build -t zkp_auth_client -f ./docker/Dockerfile.client .
    docker tag zkp_auth_client:latest <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/zkp_auth_client:latest
    docker push <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/zkp_auth_client:latest
+
+
+
+
+
+   Steps:
+Checkout repository: This step checks out the code from your repository.
+Load .env file: If a .env file exists in the repository, load its variables into the environment.
+Configure AWS credentials: Use the AWS credentials stored in GitHub Secrets to configure AWS CLI.
+Login to Amazon ECR: Authenticate Docker to ECR using AWS CLI.
+Build and tag server Docker image: Build the Docker image for the server using the specified Dockerfile, and tag it with the repository name and latest tag.
+Build and tag client Docker image: Build the Docker image for the client using the specified Dockerfile, and tag it with the repository name and latest tag.
+Push server image to ECR: Push the server image to the Amazon ECR repository.
+Push client image to ECR: Push the client image to the Amazon ECR repository.
+Running the Workflow
+Commit and push the .github/workflows/docker-ecr.yml file to your repository.
+Ensure your .env file is committed and contains the required environment variables.
+Ensure GitHub Secrets are configured with your AWS credentials, region, and account ID.
+The workflow will automatically run on each push to the main branch (or the branch you specified) and build and push your Docker images to Amazon ECR.
