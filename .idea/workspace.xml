@@ -5,13 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c68dc12b-fc2d-4d56-87f4-8374dc26803f" name="Changes" comment="a">
-      <change afterPath="$PROJECT_DIR$/test_zkp_auth_client.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zkp_auth_server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client.py" beforeDir="false" afterPath="$PROJECT_DIR$/zkp_auth_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker/server/Dockerfile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_client.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_zkp.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_zkp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker/client/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile.client" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -106,7 +101,7 @@
       <updated>1725040117165</updated>
       <workItem from="1725040118688" duration="8114000" />
       <workItem from="1725055812509" duration="6979000" />
-      <workItem from="1725073615796" duration="2320000" />
+      <workItem from="1725073615796" duration="3108000" />
     </task>
     <servers />
   </component>
