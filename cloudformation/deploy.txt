@@ -1,0 +1,12 @@
+   # Authenticate Docker to ECR
+   aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <your-account-id>.dkr.ecr.<your-region>.amazonaws.com
+
+   # Build and push the server image
+   docker build -t zkp_auth_server -f ./docker/Dockerfile.server .
+   docker tag zkp_auth_server:latest <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/zkp_auth_server:latest
+   docker push <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/zkp_auth_server:latest
+
+   # Build and push the client image
+   docker build -t zkp_auth_client -f ./docker/Dockerfile.client .
+   docker tag zkp_auth_client:latest <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/zkp_auth_client:latest
+   docker push <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/zkp_auth_client:latest
