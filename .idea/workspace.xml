@@ -6,7 +6,16 @@
   <component name="ChangeListManager">
     <list default="true" id="c68dc12b-fc2d-4d56-87f4-8374dc26803f" name="Changes" comment="a">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker/client/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile.client" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile.client" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile.client" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile.server" beforeDir="false" afterPath="$PROJECT_DIR$/docker/Dockerfile.server" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_zkp.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/test_zkp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_zkp_auth_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/test_zkp_auth_client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zkp.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zkp_auth.proto" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp_auth.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zkp_auth_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp_auth_client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zkp_auth_pb2.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp_auth_pb2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zkp_auth_pb2_grpc.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp_auth_pb2_grpc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zkp_auth_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/zkp_auth_server.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,24 +46,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "reference.settingsdialog.project.vagrant",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.vagrant&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/src" />
+      <recent name="$PROJECT_DIR$/docker" />
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/test" />
     </key>
   </component>
@@ -101,7 +111,8 @@
       <updated>1725040117165</updated>
       <workItem from="1725040118688" duration="8114000" />
       <workItem from="1725055812509" duration="6979000" />
-      <workItem from="1725073615796" duration="3108000" />
+      <workItem from="1725073615796" duration="3276000" />
+      <workItem from="1725079385540" duration="357000" />
     </task>
     <servers />
   </component>
@@ -112,7 +123,7 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/zkp_auth_server.py</url>
+          <url>file://$PROJECT_DIR$/src/zkp_auth_server.py</url>
           <line>83</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
