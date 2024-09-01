@@ -2,6 +2,31 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Infrastructure setup for ZKP Authorization with ECS, VPC, Subnet, Internet Gateway, Route Table, and ECR repositories.
 
 Resources:
+
+  ZkpPrime:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: ZkpPrime
+      Name: ZkpPrime
+      SecretString:
+        "225133"
+
+  ZkpGenerator:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: ZkpGenerator
+      Name: ZkpGenerator
+      SecretString:
+        "5"
+
+  GrpcServerPort:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: GrpcServerPort
+      Name: GrpcServerPort
+      SecretString:
+        "50051"
+
   # Create ECS Cluster
   ZkpCluster:
     Type: AWS::ECS::Cluster
@@ -20,13 +45,21 @@ Resources:
           Value: zkpVpc
 
   # Create Subnet
-  ZkpSubnet:
+  ZkpSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       CidrBlock: 10.0.1.0/24
       VpcId: !Ref ZkpVPC
       MapPublicIpOnLaunch: true
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
+
+  ZkpSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.2.0/24
+      VpcId: !Ref ZkpVPC
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
 
   # Create Internet Gateway
   ZkpInternetGateway:
@@ -54,10 +87,16 @@ Resources:
       GatewayId: !Ref ZkpInternetGateway
 
   # Associate Route Table with Subnet
-  SubnetRouteTableAssociation:
+  SubnetRouteTableAssociation1:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref ZkpSubnet
+      SubnetId: !Ref ZkpSubnet1
+      RouteTableId: !Ref ZkpRouteTable
+
+  SubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref ZkpSubnet2
       RouteTableId: !Ref ZkpRouteTable
 
   # Create ECS Task Role
@@ -154,11 +193,17 @@ Outputs:
     Export:
       Name: VpcId
 
-  SubnetId:
+  SubnetId1:
     Description: "Subnet ID"
-    Value: !Ref ZkpSubnet
+    Value: !Ref ZkpSubnet1
     Export:
-      Name: SubnetId
+      Name: SubnetId1
+
+  SubnetId2:
+    Description: "Subnet ID"
+    Value: !Ref ZkpSubnet2
+    Export:
+      Name: SubnetId2
 
   InternetGatewayId:
     Description: "Internet Gateway ID"
@@ -189,3 +234,21 @@ Outputs:
     Value: !Ref ClientTaskDefinition
     Export:
       Name: ClientTaskDefinitionArn
+
+  ZkpPrimeArn:
+    Description: "ZkpPrime ARN"
+    Value: !Ref ZkpPrime
+    Export:
+      Name: ZkpPrimeArn
+
+  ZkpGenerator:
+    Description: "ZkpGenerator ARN"
+    Value: !Ref ZkpGenerator
+    Export:
+      Name: ZkpGeneratorArn
+
+  GrpcServerPort:
+    Description: "GrpcServerPort ARN"
+    Value: !Ref GrpcServerPort
+    Export:
+      Name: GrpcServerPortArn

@@ -1,12 +1,14 @@
 import grpc
 from concurrent import futures
 import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import zkp_auth_pb2
 import zkp_auth_pb2_grpc
 from zkp import ZeroKnowledgeProof
 import logging
 from dotenv import load_dotenv
 import os
+import threading
 
 # Load environment variables from .env file
 load_dotenv()
@@ -16,9 +18,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Define the parameters for ZKP from environment
-p = int(os.getenv('ZKP_PRIME'))  # Example large prime as default value
+p = int(os.getenv('ZKP_PRIME'))  # Large prime
 q = (p - 1) // 2
-g = int(os.getenv('ZKP_GENERATOR'))  # Generator with 5 as default value
+g = int(os.getenv('ZKP_GENERATOR'))  # Generator
 
 zkp = ZeroKnowledgeProof(p, q, g)
 
@@ -69,13 +71,32 @@ class AuthServicer(zkp_auth_pb2_grpc.AuthServicer):
         return zkp_auth_pb2.AuthenticationAnswerResponse(session_id=session_id)
 
 
-def serve():
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/health':
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'Healthy')
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+
+def serve_http():
+    server_address = ('', 8080)  # You can change this port if needed
+    httpd = HTTPServer(server_address, HealthCheckHandler)
+    logger.info(f'HTTP Server started on port {server_address[1]}')
+    httpd.serve_forever()
+
+
+def serve_grpc():
     port = os.getenv('GRPC_SERVER_PORT').split(':')[-1]
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     zkp_auth_pb2_grpc.add_AuthServicer_to_server(AuthServicer(), server)
     server.add_insecure_port(f'[::]:{port}')
     server.start()
-    logger.info(f"Server started on port {port}")
+    logger.info(f'gRPC Server started on port {port}')
     try:
         while True:
             time.sleep(86400)  # 1 day in seconds
@@ -84,4 +105,11 @@ def serve():
 
 
 if __name__ == '__main__':
-    serve()
+    grpc_thread = threading.Thread(target=serve_grpc)
+    http_thread = threading.Thread(target=serve_http)
+
+    grpc_thread.start()
+    http_thread.start()
+
+    grpc_thread.join()
+    http_thread.join()
