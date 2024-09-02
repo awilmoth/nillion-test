@@ -18,7 +18,7 @@ The infrastructure as code in the ```cloudformation``` folder will deploy a comp
 
 1. Fork the repository.
 
-2. Deploy the 1_base_infrastructure.yaml to your AWS account using Cloudformation. Add the zero knowledge prime and generator as parameters.
+2. Deploy the 1_base_infrastructure.yaml to your AWS account using Cloudformation via the console or cli. Add the zero knowledge prime and generator as parameters when deploying the Cloudformation template.
 
 3. Add secrets for your AWS account and ECR Repository to Github Secrets.\
 AWS_ACCESS_KEY_ID=your AWS access key\
@@ -32,6 +32,6 @@ ECR_REPOSITORY_SERVER=zkp_auth_server
 
 5. Deploy the 2_high_availability_ecs.yaml to your AWS account using Cloudformation.
 
-## Updates
+## Deploying Code Updates
 
-The Github Action workflow triggers on all pushes to main. This will run the tests, build the docker container and push to ECR with the tag ```latest```. To update the ECS tasks, update the ECS Service in the AWS console or via the cli to get the latest docker container from ECR.
+The Github Action workflow triggers on all pushes to main. This will run the tests, build the docker container and push to ECR with the tag ```latest```. To update the ECS tasks to run the latest code, update the ECS Service in the AWS console or via the cli to get the latest docker container from ECR.
