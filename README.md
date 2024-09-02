@@ -1,4 +1,4 @@
-## Zero Knowledge Auth
+## Zero Knowledge Authentication
 
 This is a basic implementation of zero knowledge authentication in Python. It includes everything needed to deploy to production-grade infrastructure in AWS.
 
