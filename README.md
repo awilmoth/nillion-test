@@ -35,3 +35,12 @@ ECR_REPOSITORY_SERVER=zkp_auth_server
 ## Deploying Code Updates
 
 The Github Action workflow triggers on all pushes to main. This will run the tests, build the docker container and push to ECR with the tag ```latest```. To update the ECS tasks to run the latest code, update the ECS Service in the AWS console or via the cli to get the latest docker container from ECR.
+
+## Improvements
+
+There are a number of things that could be done to improve this project:\
+
+1. Further harden security by eliminating all wildcards in the IAM resource definitions.
+2. Implement CD if desired.  
+3. The Fargate containers are currently set up with a public IP for testing. This could be removed for security.
+4. ECS tasks could communicate with each other over a private network for improved security.
