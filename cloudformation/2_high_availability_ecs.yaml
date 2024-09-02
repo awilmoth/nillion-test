@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: A simplified CloudFormation template to set up basic continuous deployment to ECS Fargate with CloudWatch logging and an Application Load Balancer.
+Description: A CloudFormation template to set up high availability ECS Fargate with CloudWatch logging and a Network Load Balancer.
 
 Resources:
   GrpcServerUrl:
@@ -91,7 +91,6 @@ Resources:
                   - !Ref GrpcServerUrl
                   - !ImportValue ZkpPrimeArn
                   - !ImportValue ZkpGeneratorArn
-                  - !ImportValue GrpcServerPortArn
 
   # Load Balancer
   LoadBalancer:
@@ -161,8 +160,6 @@ Resources:
               ValueFrom: !ImportValue ZkpGeneratorArn
             - Name: GRPC_SERVER_URL
               ValueFrom: !Ref GrpcServerUrl
-            - Name: GRPC_SERVER_PORT
-              ValueFrom: !ImportValue GrpcServerPortArn
           PortMappings:
             - ContainerPort: 50051
             - ContainerPort: 8080
@@ -193,8 +190,6 @@ Resources:
               ValueFrom: !ImportValue ZkpGeneratorArn
             - Name: GRPC_SERVER_URL
               ValueFrom: !Ref GrpcServerUrl
-            - Name: GRPC_SERVER_PORT
-              ValueFrom: !ImportValue GrpcServerPortArn
 
   # ECS Fargate Services
   ServerService:
