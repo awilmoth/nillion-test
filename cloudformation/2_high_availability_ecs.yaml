@@ -231,11 +231,3 @@ Resources:
             - !GetAtt ServerSecurityGroup.GroupId
           AssignPublicIp: ENABLED
     DependsOn: ServerService
-
-
-Outputs:
-  GrpcServerUrl:
-    Description: "GrpcServerUrl ARN"
-    Value: !Ref GrpcServerUrl
-    Export:
-      Name: GrpcServerUrlArn
