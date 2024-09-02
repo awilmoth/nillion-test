@@ -12,7 +12,7 @@ Tests are run automatically from all files prefixed with ```test_```. The Github
 
 ## High Availability ECS
 
-The infrastructure as code in the ```cloudformation``` folder will deploy a complete HA environment with two server instances as ECS tasks behind a network load balancer and firewall. It will also deploy a client container that will authenticate with the server. Everything logs to Cloudwatch Logs, so you can see the interaction. 
+The infrastructure as code in the ```cloudformation``` folder will deploy a complete HA environment with two server instances as ECS tasks running on Fargate containers behind an internet-facing network load balancer and firewall. It will also deploy a client container that will authenticate with the server. Everything logs to Cloudwatch Logs, so you can see the interaction. 
 
 ## Deployment
 
@@ -34,4 +34,4 @@ ECR_REPOSITORY_SERVER=zkp_auth_server
 
 ## Updates
 
-The Github Action workflow triggers on all pushes to main. This will run the tests, build the docker container and push to ECR with the tag ```latest```. To update the ECS tasks, update the ECS Deployment in the AWS console or via the cli to get the latest docker container from ECR.
+The Github Action workflow triggers on all pushes to main. This will run the tests, build the docker container and push to ECR with the tag ```latest```. To update the ECS tasks, update the ECS Service in the AWS console or via the cli to get the latest docker container from ECR.
