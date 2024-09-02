@@ -12,7 +12,7 @@ Tests are run automatically from all files prefixed with ```test_```. The Github
 
 ## High Availability ECS
 
-The infrastructure as code in the ```cloudformation``` folder will deploy a complete HA environment with two server instances on as ECS tasks behind a network load balancer and firewall. It will also deploy a client container that will authenticate with the server. Everything logs to Cloudwatch Logs, so you can see the interaction. 
+The infrastructure as code in the ```cloudformation``` folder will deploy a complete HA environment with two server instances as ECS tasks behind a network load balancer and firewall. It will also deploy a client container that will authenticate with the server. Everything logs to Cloudwatch Logs, so you can see the interaction. 
 
 ## Deployment
 
