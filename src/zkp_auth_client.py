@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_env_variables():
+    logger.info(f'zero-knowledge-auth client initializing.')
     try:
         p = int(os.getenv('ZKP_PRIME'))
         g = int(os.getenv('ZKP_GENERATOR'))
