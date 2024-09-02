@@ -1,5 +1,7 @@
 ##
 
+This workflow will now automatically build and push your Docker images to Amazon ECR whenever there is a push to the main branch.
+
 ## Deployment
 
 1. Fork the repository.
