@@ -38,7 +38,7 @@ The Github Action workflow triggers on all pushes to main. This will run the tes
 
 ## Improvements
 
-There are a number of things that could be done to improve this project:\
+There are a number of things that could be done to improve this project:
 
 1. Further harden security by eliminating all wildcards in the IAM resource definitions.
 2. Implement CD if desired.  
