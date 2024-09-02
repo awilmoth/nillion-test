@@ -2,7 +2,7 @@
 
 This is a basic implementation of zero knowledge authentication in Python. It includes everything needed to deploy a high availability server and client to production-grade infrastructure in AWS.
 
-## Workflow
+## Github Actions Workflow
 
 This workflow will now automatically build and push your Docker images to Amazon ECR whenever there is a push to the main branch.
 
