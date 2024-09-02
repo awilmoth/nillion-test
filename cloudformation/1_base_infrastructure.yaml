@@ -167,17 +167,6 @@ Resources:
           Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/zkp_auth_client:latest"
 
 Outputs:
-  ZkpServerRepositoryUri:
-    Description: "ZKP Auth Server Repository URI"
-    Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/zkp_auth_server"
-    Export:
-      Name: ZkpServerRepositoryUri
-
-  ZkpClientRepositoryUri:
-    Description: "ZKP Auth Client Repository URI"
-    Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/zkp_auth_client"
-    Export:
-      Name: ZkpClientRepositoryUri
 
   ClusterName:
     Description: "ECS Cluster Name"
@@ -202,36 +191,6 @@ Outputs:
     Value: !Ref ZkpSubnet2
     Export:
       Name: SubnetId2
-
-  InternetGatewayId:
-    Description: "Internet Gateway ID"
-    Value: !Ref ZkpInternetGateway
-    Export:
-      Name: InternetGatewayId
-
-  RouteTableId:
-    Description: "Route Table ID"
-    Value: !Ref ZkpRouteTable
-    Export:
-      Name: RouteTableId
-
-  TaskExecutionRoleArn:
-    Description: "Task Execution Role ARN"
-    Value: !GetAtt ZkpTaskExecutionRole.Arn
-    Export:
-      Name: TaskExecutionRoleArn
-
-  ServerTaskDefinitionArn:
-    Description: "Server Task Definition ARN"
-    Value: !Ref ServerTaskDefinition
-    Export:
-      Name: ServerTaskDefinitionArn
-
-  ClientTaskDefinitionArn:
-    Description: "Client Task Definition ARN"
-    Value: !Ref ClientTaskDefinition
-    Export:
-      Name: ClientTaskDefinitionArn
 
   ZkpPrimeArn:
     Description: "ZkpPrime ARN"
