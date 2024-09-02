@@ -18,7 +18,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: '3.x'  # Define the Python version
 
       - name: Install dependencies
         run: |
@@ -27,8 +27,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          python -m unittest discover -s src -p "test_zkp.py"
-          python -m unittest discover -s src -p "test_zkp_auth_client.py"
+          python -m unittest discover -s src -p "test_*.py"  # Discover and run all tests prefixed with test_
 
       - name: Configure AWS credentials
         if: success()
