@@ -21,6 +21,7 @@ Login Process
 The login process is done following the ZKP Protocol shown in the diagram. Been the Prover
 the authenticating party and the Verifier the server running the authentication check:
 
+
 Primary ask
 Design and write the code that implements the ZKP Protocol outlined above. Solution should
 be implemented as server and client using gRPC protocol according to the provided interface

@@ -1,0 +1,246 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: A simplified CloudFormation template to set up basic continuous deployment to ECS Fargate with CloudWatch logging and an Application Load Balancer.
+
+Resources:
+  GrpcServerUrl:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: GrpcServerUrl
+      Name: GrpcServerUrl
+      SecretString:
+        !Join [ ":", [ !GetAtt LoadBalancer.DNSName, "50051" ] ]
+    DependsOn: LoadBalancer
+
+  # Log Groups
+  ServerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/server
+      RetentionInDays: 14
+
+  ClientLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/client
+      RetentionInDays: 14
+
+  # Security Group
+  ServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable access
+      VpcId: !ImportValue VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 50051
+          ToPort: 50051
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: TCP access to the load balancer
+      VpcId: !ImportValue VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 50051
+          ToPort: 50051
+          CidrIp: 0.0.0.0/0
+
+  # Task Execution Role
+  EcsTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ecsTaskExecutionRolePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:BatchGetImage"
+                  - "ecr:GetAuthorizationToken"
+                  - "s3:GetObject"
+                Resource: "*"
+        - PolicyName: secretsAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - !Ref GrpcServerUrl
+                  - !ImportValue ZkpPrimeArn
+                  - !ImportValue ZkpGeneratorArn
+                  - !ImportValue GrpcServerPortArn
+
+  # Load Balancer
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: server-lb
+      Subnets:
+        - !ImportValue SubnetId1
+        - !ImportValue SubnetId2
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+      Scheme: internet-facing
+      Type: network
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ServerTargetGroup
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 50051
+      Protocol: TCP
+
+  ServerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: server-target-group
+      Port: 50051
+      Protocol: TCP
+      VpcId: !ImportValue VpcId
+      HealthCheckPath: /health
+      HealthCheckPort: 8080
+      HealthCheckProtocol: HTTP
+      TargetType: ip
+      Matcher:
+        HttpCode: 200
+      HealthCheckIntervalSeconds: 30
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+      HealthCheckTimeoutSeconds: 5
+
+  # Task Definitions
+  ServerTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: server-task
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: "256"
+      Memory: "512"
+      ExecutionRoleArn: !GetAtt EcsTaskExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: server-container
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/zkp_auth_server:latest
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: /ecs/server
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-stream-prefix: server
+          Secrets:
+            - Name: ZKP_PRIME
+              ValueFrom: !ImportValue ZkpPrimeArn
+            - Name: ZKP_GENERATOR
+              ValueFrom: !ImportValue ZkpGeneratorArn
+            - Name: GRPC_SERVER_URL
+              ValueFrom: !Ref GrpcServerUrl
+            - Name: GRPC_SERVER_PORT
+              ValueFrom: !ImportValue GrpcServerPortArn
+          PortMappings:
+            - ContainerPort: 50051
+            - ContainerPort: 8080
+
+  ClientTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: client-task
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: "256"
+      Memory: "512"
+      ExecutionRoleArn: !GetAtt EcsTaskExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: client-container
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/zkp_auth_client:latest
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: /ecs/client
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-stream-prefix: client
+          Secrets:
+            - Name: ZKP_PRIME
+              ValueFrom: !ImportValue ZkpPrimeArn
+            - Name: ZKP_GENERATOR
+              ValueFrom: !ImportValue ZkpGeneratorArn
+            - Name: GRPC_SERVER_URL
+              ValueFrom: !Ref GrpcServerUrl
+            - Name: GRPC_SERVER_PORT
+              ValueFrom: !ImportValue GrpcServerPortArn
+
+  # ECS Fargate Services
+  ServerService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !ImportValue ClusterName
+      TaskDefinition: !Ref ServerTaskDefinition
+      DesiredCount: 2
+      ServiceName: ServerService
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !ImportValue SubnetId1
+            - !ImportValue SubnetId2
+          SecurityGroups:
+            - !GetAtt ServerSecurityGroup.GroupId
+          AssignPublicIp: ENABLED
+      LoadBalancers:
+        - ContainerName: server-container
+          ContainerPort: 50051
+          TargetGroupArn: !Ref ServerTargetGroup
+    DependsOn: LoadBalancer
+
+  ClientService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !ImportValue ClusterName
+      TaskDefinition: !Ref ClientTaskDefinition
+      DesiredCount: 1
+      ServiceName: ClientService
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !ImportValue SubnetId1
+            - !ImportValue SubnetId2
+          SecurityGroups:
+            - !GetAtt ServerSecurityGroup.GroupId
+          AssignPublicIp: ENABLED
+    DependsOn: ServerService
+
+
+Outputs:
+  GrpcServerUrl:
+    Description: "GrpcServerUrl ARN"
+    Value: !Ref GrpcServerUrl
+    Export:
+      Name: GrpcServerUrlArn
