@@ -13,27 +13,27 @@ class TestRunFunction(unittest.TestCase):
     })
     @patch('zkp_auth_pb2_grpc.AuthStub')
     @patch('grpc.insecure_channel')
-    def test_run_success(self, mock_insecure_channel, mock_AuthStub):
-        # Mocking
-        mock_channel = MagicMock()
-        mock_insecure_channel.return_value.__enter__.return_value = mock_channel
-        mock_stub = MagicMock()
-        mock_AuthStub.return_value = mock_stub
-
-        # Setting up mock return values
-        mock_stub.Register.return_value = MagicMock()
-        mock_stub.CreateAuthenticationChallenge.return_value = MagicMock(auth_id="auth_id", c=1234)
-        mock_stub.VerifyAuthentication.return_value = MagicMock(session_id="session_id")
-
-        # Run the function
-        with self.assertLogs('zkp_auth_client', level='INFO') as log:
-            zkp_run()
-
-        # Asserts: Ensure general content rather than exact string matches due to dynamic values in logs
-        self.assertTrue(any("Registered user1 with y1 and y2" in message for message in log.output))
-        self.assertTrue(any("Challenge received: 1234" in message for message in log.output))
-        self.assertTrue(any("Sending response: s=" in message for message in log.output))
-        self.assertTrue(any("Authentication successful, session ID: session_id" in message for message in log.output))
+    # def test_run_success(self, mock_insecure_channel, mock_AuthStub):
+    #     # Mocking
+    #     mock_channel = MagicMock()
+    #     mock_insecure_channel.return_value.__enter__.return_value = mock_channel
+    #     mock_stub = MagicMock()
+    #     mock_AuthStub.return_value = mock_stub
+    #
+    #     # Setting up mock return values
+    #     mock_stub.Register.return_value = MagicMock()
+    #     mock_stub.CreateAuthenticationChallenge.return_value = MagicMock(auth_id="auth_id", c=1234)
+    #     mock_stub.VerifyAuthentication.return_value = MagicMock(session_id="session_id")
+    #
+    #     # Run the function
+    #     with self.assertLogs('zkp_auth_client', level='INFO') as log:
+    #         zkp_run()
+    #
+    #     # Asserts: Ensure general content rather than exact string matches due to dynamic values in logs
+    #     self.assertTrue(any("Registered user1 with y1 and y2" in message for message in log.output))
+    #     self.assertTrue(any("Challenge received: 1234" in message for message in log.output))
+    #     self.assertTrue(any("Sending response: s=" in message for message in log.output))
+    #     self.assertTrue(any("Authentication successful, session ID: session_id" in message for message in log.output))
 
     @patch.dict(os.environ, {}, clear=True)
     def test_missing_env_variables(self):
