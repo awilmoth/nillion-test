@@ -1,4 +1,8 @@
-##
+## Zero Knowledge Auth
+
+This is a basic implementation of zero knowledge authentication in Python. It includes everything needed to deploy production-grade infrastructure in AWS.\
+
+## Workflow
 
 This workflow will now automatically build and push your Docker images to Amazon ECR whenever there is a push to the main branch.
 
@@ -22,4 +26,4 @@ ECR_REPOSITORY_SERVER=zkp_auth_server
 
 ## Updates
 
-The Github Action workflow triggers on all pushes to main. This will build the docker container and push to ECR with the tag ```latest```. To update the ECS tasks, update the ECS Deployment in the AWS console or via the cli to get the latest docker container from ECR.
+The Github Action workflow triggers on all pushes to main. This will run the tests, build the docker container and push to ECR with the tag ```latest```. To update the ECS tasks, update the ECS Deployment in the AWS console or via the cli to get the latest docker container from ECR.
