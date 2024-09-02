@@ -17,3 +17,7 @@ ECR_REPOSITORY_SERVER=zkp_auth_server
 4. Run the Github Action workflow to trigger the Docker build and push to ECR.
 
 5. Deploy the 2_high_availability_ecs.yaml to your AWS account using Cloudformation.
+
+## Updates
+
+The Github Action workflow triggers on all pushes to main. This will build the docker container and push to ECR with the tag '''latest'''. To update the ECS tasks, update the ECS Deployment in the AWS console or via the cli to get the latest docker container from ECR.
