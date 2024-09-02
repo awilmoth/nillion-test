@@ -1,10 +1,18 @@
 ## Zero Knowledge Auth
 
-This is a basic implementation of zero knowledge authentication in Python. It includes everything needed to deploy production-grade infrastructure in AWS.\
+This is a basic implementation of zero knowledge authentication in Python. It includes everything needed to deploy to production-grade infrastructure in AWS.
 
 ## Workflow
 
 This workflow will now automatically build and push your Docker images to Amazon ECR whenever there is a push to the main branch.
+
+## CI
+
+Tests are run automatically from all files prefixed with ```test_```. The Github Actions workflow fails if any tests fail.
+
+## High Availability ECS
+
+The infrastructure as code in the ```cloudformation``` folder will deploy a complete HA environment with two server instances on as ECS tasks behind a network load balancer and firewall. It will also deploy a client container that will authenticate with the server. Everything logs to Cloudwatch Logs, so you can see the interaction. 
 
 ## Deployment
 
