@@ -1,39 +1,40 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Infrastructure setup for ZKP Authorization with ECS, VPC, Subnet, Internet Gateway, Route Table, and ECR repositories.
 
-Resources:
+Parameters:
+  ZkpPrimeParameter:
+    Description: Zero Knowledge Proof Prime
+    Type: String
+    Default: "225133"
 
+  ZkpGeneratorParameter:
+    Description: Zero Knowledge Proof Generator
+    Type: String
+    Default: "5"
+
+Resources:
+  # Secrets
   ZkpPrime:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Description: ZkpPrime
+      Description: Zero Knowledge Proof Prime Number
       Name: ZkpPrime
-      SecretString:
-        "225133"
+      SecretString: !Ref ZkpPrimeParameter
 
   ZkpGenerator:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Description: ZkpGenerator
+      Description: Zero Knowledge Proof Generator
       Name: ZkpGenerator
-      SecretString:
-        "5"
+      SecretString: !Ref ZkpGeneratorParameter
 
-  GrpcServerPort:
-    Type: AWS::SecretsManager::Secret
-    Properties:
-      Description: GrpcServerPort
-      Name: GrpcServerPort
-      SecretString:
-        "50051"
-
-  # Create ECS Cluster
+  # ECS Cluster
   ZkpCluster:
     Type: AWS::ECS::Cluster
     Properties:
       ClusterName: zkpCluster
 
-  # Create VPC
+  # VPC Setup
   ZkpVPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -44,7 +45,7 @@ Resources:
         - Key: Name
           Value: zkpVpc
 
-  # Create Subnet
+  # Subnets
   ZkpSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
@@ -61,24 +62,22 @@ Resources:
       MapPublicIpOnLaunch: true
       AvailabilityZone: !Select [ 1, !GetAZs '' ]
 
-  # Create Internet Gateway
+  # Internet Gateway
   ZkpInternetGateway:
     Type: AWS::EC2::InternetGateway
 
-  # Attach Gateway to VPC
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref ZkpVPC
       InternetGatewayId: !Ref ZkpInternetGateway
 
-  # Create Route Table
+  # Route Table and Route
   ZkpRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref ZkpVPC
 
-  # Create Route
   ZkpRoute:
     Type: AWS::EC2::Route
     Properties:
@@ -86,7 +85,7 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref ZkpInternetGateway
 
-  # Associate Route Table with Subnet
+  # Route Table Associations
   SubnetRouteTableAssociation1:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -99,7 +98,7 @@ Resources:
       SubnetId: !Ref ZkpSubnet2
       RouteTableId: !Ref ZkpRouteTable
 
-  # Create ECS Task Role
+  # ECS Task Execution Role
   ZkpTaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -126,7 +125,7 @@ Resources:
                   - logs:CreateLogGroup
                 Resource: "*"
 
-  # Create ECR Repositories
+  # ECR Repositories
   ZkpServerRepository:
     Type: AWS::ECR::Repository
     Properties:
@@ -137,7 +136,7 @@ Resources:
     Properties:
       RepositoryName: zkp_auth_client
 
-  # ECS Task Definition for Server
+  # ECS Task Definitions
   ServerTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -154,7 +153,6 @@ Resources:
             - ContainerPort: 50051
               HostPort: 50051
 
-  # ECS Task Definition for Client
   ClientTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -241,14 +239,8 @@ Outputs:
     Export:
       Name: ZkpPrimeArn
 
-  ZkpGenerator:
+  ZkpGeneratorArn:
     Description: "ZkpGenerator ARN"
     Value: !Ref ZkpGenerator
     Export:
       Name: ZkpGeneratorArn
-
-  GrpcServerPort:
-    Description: "GrpcServerPort ARN"
-    Value: !Ref GrpcServerPort
-    Export:
-      Name: GrpcServerPortArn
