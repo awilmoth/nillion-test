@@ -31,6 +31,7 @@ class AuthServicer(zkp_auth_pb2_grpc.AuthServicer):
         self.challenge_store = {}
 
     def Register(self, request, context):
+        logger.info(f'zero-knowledge-auth server initializing.')
         logger.info(f"Registering user {request.user} with y1={request.y1} and y2={request.y2}")
         self.user_store[request.user] = {
             'y1': request.y1,
@@ -63,7 +64,7 @@ class AuthServicer(zkp_auth_pb2_grpc.AuthServicer):
         if not user_data:
             context.abort(grpc.StatusCode.NOT_FOUND, "User data not found")
 
-        # Here, you should verify the ZKP response (omitted for brevity)
+        # Here, you should verify the ZKP response
         # This involves using the stored challenge, the user's public keys, and the provided response 's'
 
         session_id = "session_" + str(time.time())  # Generate a unique session ID
